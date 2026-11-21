@@ -1,0 +1,310 @@
+openapi: 3.1.0
+
+info:
+  title: Football Challenger API
+  version: 1.0.0
+  description: API REST para gerir equipas de futebol
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local
+
+components:
+  schemas:
+    Team:
+      type: object
+      required:
+        - id
+        - name
+        - country
+        - founded_year
+        - created_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Sporting Clube de Portugal
+        country:
+          type: string
+          example: Portugal
+        founded_year:
+          type:
+            - integer
+            - "null"
+          minimum: 1800
+          example: 1906
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-11-21T10:30:00.000Z"
+
+    TeamInput:
+      type: object
+      required:
+        - name
+        - country
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Sporting Clube de Portugal
+        country:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Portugal
+        founded_year:
+          type:
+            - integer
+            - "null"
+          minimum: 1800
+          example: 1906
+
+    Error:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Não foi possível processar o pedido
+
+    DeleteTeamResponse:
+      type: object
+      required:
+        - status
+        - message
+        - team
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Equipa eliminada com sucesso
+        team:
+          $ref: "#/components/schemas/Team"
+
+tags:
+  - name: System
+    description: Estado da aplicação
+  - name: Teams
+    description: Gestão de equipas
+
+
+paths:
+  /api/health:
+    get:
+      tags:
+        - System
+      summary: Verifica o estado da aplicação
+      responses:
+        "200":
+          description: Aplicação e base de dados disponíveis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: football-lab
+                  database:
+                    type: string
+                    example: connected
+        "503":
+          description: Base de dados indisponível
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  service:
+                    type: string
+                    example: football-lab
+                  database:
+                    type: string
+                    example: unavailable
+
+  /api/teams:
+    get:
+      tags:
+        - Teams
+      summary: Lista todas as equipas
+      responses:
+        "200":
+          description: Lista de equipas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "500":
+          description: Erro ao consultar as equipas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      tags:
+        - Teams
+      summary: Cria uma equipa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInput"
+      responses:
+        "201":
+          description: Equipa criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          description: Payload inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Já existe uma equipa com o mesmo nome
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erro ao criar a equipa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/teams/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Identificador da equipa
+        schema:
+          type: integer
+          minimum: 1
+          example: 1
+
+    get:
+      tags:
+        - Teams
+      summary: Consulta uma equipa pelo ID
+      responses:
+        "200":
+          description: Equipa encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Equipa não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erro ao consultar a equipa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags:
+        - Teams
+      summary: Substitui os dados de uma equipa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInput"
+      responses:
+        "200":
+          description: Equipa atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          description: ID ou payload inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Equipa não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Já existe uma equipa com o mesmo nome
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erro ao atualizar a equipa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags:
+        - Teams
+      summary: Elimina uma equipa
+      responses:
+        "200":
+          description: Equipa eliminada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteTeamResponse"
+        "400":
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Equipa não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erro ao eliminar a equipa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"

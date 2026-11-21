@@ -6,7 +6,28 @@ const pool = require("./db");
 const app = express();
 const port = 3000;
 
+const fs = require("node:fs");
+const path = require("node:path");
+const YAML = require("yaml");
+const swaggerUi = require("swagger-ui-express");
+
+const openApiPath = path.join(
+  __dirname,
+  "..",
+  "docs",
+  "openapi.yaml",
+);
+
+const openApiText = fs.readFileSync(openApiPath, "utf8");
+const openApiDocument = YAML.parse(openApiText);
+
 app.use(express.json());
+
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openApiDocument),
+);
 
 app.get("/api/health", async (req, res) => {
   res.set("Cache-Control", "no-store");
