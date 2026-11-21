@@ -209,7 +209,7 @@ app.put("/api/teams/:id", async (req, res) => {
     });
   }
 });
-
+//comentário só para criar commit do delete
 app.delete("/api/teams/:id", async (req, res) => {
   const id = Number(req.params.id);
 
